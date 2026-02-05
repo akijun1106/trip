@@ -80,7 +80,34 @@ else:
     }
 
 
-# Password validation
+# Caching Configuration
+# https://docs.djangoproject.com/en/6.0/topics/cache/
+
+if os.environ.get('REDIS_URL'):
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': os.environ.get('REDIS_URL'),
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                'CONNECTION_POOL_KWARGS': {'max_connections': 50},
+            }
+        }
+    }
+else:
+    # ローカル開発環境ではメモリキャッシュを使用
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'unique-key',
+            'OPTIONS': {
+                'MAX_ENTRIES': 1000
+            }
+        }
+    }
+
+# キャッシュのデフォルト有効期限（秒）
+CACHE_TIMEOUT = 60 * 5  # 5分# Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [

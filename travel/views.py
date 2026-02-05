@@ -8,9 +8,12 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 from .plan_generator import generate_travel_plan
 
 # ホーム画面（おすすめ表示）
+@cache_page(60 * 5)  # 5分間キャッシュ
 def index(request):
     destinations = Destination.objects.all()
     # 1つもデータがないとエラーになるのでチェック
