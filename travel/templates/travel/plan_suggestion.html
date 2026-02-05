@@ -9,30 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-    <style>
-        .plan-section .plan-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            align-items: start;
-        }
-        
-        #plan-map {
-            height: 600px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            background: #f0f0f0;
-        }
-        
-        @media (max-width: 768px) {
-            .plan-section .plan-container {
-                grid-template-columns: 1fr;
-            }
-            #plan-map {
-                height: 400px;
-            }
-        }
-    </style>
 </head>
 <body>
     <header>
@@ -72,7 +48,7 @@
                 <p class="subtitle">行き先と日数を入れるだけで、あなたの好みに合わせたプランが完成！</p>
             </div>
 
-            <div class="plan-container">
+            <div class="plan-container" style="display: block;">
                 <!-- プラン生成フォーム -->
                 <div class="form-box">
                     <h3>プラン生成フォーム</h3>
@@ -113,11 +89,9 @@
                     </form>
                 </div>
 
-                <!-- 地図表示 -->
-                <div>
-                    <h3 style="margin-bottom: 15px;">📍 目的地の場所</h3>
-                    <div id="plan-map"></div>
-                    <p style="text-align: center; margin-top: 10px; color: #888; font-size: 0.9rem;">入力した目的地がここに表示されます</p>
+                <!-- 地図ボタン -->
+                <div style="margin-top: 20px;">
+                    <button type="button" class="btn-map" onclick="openMapModal('plan-map-modal')"><i class="fas fa-map"></i> 📍 地図を表示</button>
                 </div>
 
                 <!-- 生成されたプラン表示 -->
@@ -392,20 +366,10 @@
             menuBg.classList.remove('show');
         });
 
-        // 地図初期化
-        let map;
-        let marker;
+        // 地図モーダル管理
+        let mapInstances = {};
+        let mapMarkers = {};
 
-        function initMap() {
-            map = L.map('plan-map').setView([36.2025, 138.2529], 5);
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(map);
-        }
-
-        // 目的地の主要座標
         const destinationCoords = {
             '京都': [35.0116, 135.7681],
             '東京': [35.6762, 139.6503],
@@ -415,27 +379,74 @@
             '沖縄': [26.2124, 127.6809],
         };
 
-        // 目的地入力時に地図更新
-        document.querySelector('input[name="destination"]').addEventListener('change', function(e) {
-            const dest = e.target.value;
-            const coords = destinationCoords[dest];
+        function openMapModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.add('show');
             
-            if (coords && map) {
-                map.setView(coords, 12);
-                
-                if (marker) map.removeLayer(marker);
-                marker = L.marker(coords)
-                    .bindPopup(`<b>${dest}</b>`)
-                    .addTo(map);
-                marker.openPopup();
-            }
-        });
+            setTimeout(() => {
+                const mapElement = modal.querySelector('.modal-map');
+                if (mapElement && !mapInstances[modalId]) {
+                    const map = L.map(mapElement).setView([36.2025, 138.2529], 5);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '© OpenStreetMap contributors'
+                    }).addTo(map);
+                    mapInstances[modalId] = map;
+                    
+                    // 目的地マーカーを表示
+                    const dest = document.querySelector('input[name="destination"]').value;
+                    const coords = destinationCoords[dest];
+                    if (coords) {
+                        const marker = L.marker(coords)
+                            .bindPopup(`<b>${dest}</b>`)
+                            .addTo(map);
+                        marker.openPopup();
+                        mapMarkers[modalId] = marker;
+                        map.setView(coords, 12);
+                    }
+                }
+            }, 100);
+        }
 
-        // ページロード時に地図初期化
-        window.addEventListener('load', initMap);
+        function closeMapModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('show');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // モーダルの閉じるボタン
+            document.querySelectorAll('.modal-close').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const modal = e.target.closest('.map-modal');
+                    closeMapModal(modal.id);
+                });
+            });
+            
+            // モーダル背景クリックで閉じる
+            document.querySelectorAll('.map-modal').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        closeMapModal(modal.id);
+                    }
+                });
+            });
+        });
     </script>
     
     <!-- Leaflet ライブラリ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    
+    <!-- 地図モーダル -->
+    <div id="plan-map-modal" class="map-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📍 目的地の場所</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-map" id="plan-modal-map"></div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
