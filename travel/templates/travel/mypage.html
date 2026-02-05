@@ -8,6 +8,39 @@
     <link rel="stylesheet" href="{% static 'travel/style.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <style>
+        .mypage-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+        
+        #mypage-map {
+            height: 500px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            background: #f0f0f0;
+        }
+        
+        .mypage-map-section {
+            grid-column: 2;
+            grid-row: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .mypage-container {
+                grid-template-columns: 1fr;
+            }
+            .mypage-map-section {
+                grid-column: 1;
+            }
+            #mypage-map {
+                height: 300px;
+            }
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -47,43 +80,44 @@
             </div>
 
             <div class="mypage-container">
-                <div class="profile-card">
-                    <div class="profile-header">
-                        <div class="profile-avatar">
-                            <i class="fas fa-user-circle"></i>
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <div class="profile-avatar">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <div class="profile-info">
+                                <h3>{{ user.username }}</h3>
+                                <p class="profile-email">{{ user.email }}</p>
+                            </div>
                         </div>
-                        <div class="profile-info">
-                            <h3>{{ user.username }}</h3>
-                            <p class="profile-email">{{ user.email }}</p>
+
+                        <div class="profile-details">
+                            <div class="detail-item">
+                                <label>ユーザー名</label>
+                                <p>{{ user.username }}</p>
+                            </div>
+                            <div class="detail-item">
+                                <label>メールアドレス</label>
+                                <p>{{ user.email }}</p>
+                            </div>
+                            <div class="detail-item">
+                                <label>名前</label>
+                                <p>{{ user.last_name }} {{ user.first_name }}</p>
+                            </div>
+                            <div class="detail-item">
+                                <label>登録日</label>
+                                <p>{{ user.date_joined|date:"Y年m月d日" }}</p>
+                            </div>
+                        </div>
+
+                        <div class="profile-actions">
+                            <a href="{% url 'mypage_edit' %}" class="btn-main">プロフィール編集</a>
+                            <a href="{% url 'preference_settings' %}" class="btn-secondary">旅行好み設定</a>
                         </div>
                     </div>
 
-                    <div class="profile-details">
-                        <div class="detail-item">
-                            <label>ユーザー名</label>
-                            <p>{{ user.username }}</p>
-                        </div>
-                        <div class="detail-item">
-                            <label>メールアドレス</label>
-                            <p>{{ user.email }}</p>
-                        </div>
-                        <div class="detail-item">
-                            <label>名前</label>
-                            <p>{{ user.last_name }} {{ user.first_name }}</p>
-                        </div>
-                        <div class="detail-item">
-                            <label>登録日</label>
-                            <p>{{ user.date_joined|date:"Y年m月d日" }}</p>
-                        </div>
-                    </div>
-
-                    <div class="profile-actions">
-                        <a href="{% url 'mypage_edit' %}" class="btn-main">プロフィール編集</a>
-                        <a href="{% url 'preference_settings' %}" class="btn-secondary">旅行好み設定</a>
-                    </div>
-                </div>
-
-                <div class="my-posts-section">
+                    <div class="my-posts-section">
                     <h3>私の投稿</h3>
                     <div class="post-grid">
                         {% for post in user.travelpost_set.all %}
@@ -119,11 +153,18 @@
                         <p class="empty-msg">まだ投稿がありません。<a href="{% url 'post_create' %}">最初の投稿</a>をしてみませんか？</p>
                         {% endfor %}
                     </div>
+                    </div>
+                </div>
+
+                <div class="mypage-map-section">
+                    <h4 style="margin: 0 0 10px 0; color: #333;">旅行地図</h4>
+                    <div id="mypage-map"></div>
                 </div>
             </div>
         </section>
     </main>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script>
         const hamburger = document.getElementById('hamburger');
         const sideMenu = document.getElementById('side-menu');
@@ -139,6 +180,51 @@
             hamburger.classList.remove('active');
             sideMenu.classList.remove('open');
             menuBg.classList.remove('show');
+        });
+
+        // Leaflet Map Initialization
+        let mypageMap = null;
+        let mypageMarker = null;
+
+        const mypageDestinationCoords = {
+            '京都': [35.0116, 135.7681],
+            '東京': [35.6762, 139.6503],
+            '大阪': [34.6937, 135.5023],
+            '広島': [34.3853, 132.4553],
+            '福岡': [33.5904, 130.4017],
+            '沖縄': [26.2124, 127.6809],
+            '札幌': [43.0642, 141.3469],
+            '横浜': [35.4437, 139.6380],
+            '名古屋': [35.1815, 136.9066],
+            'デフォルト': [36.2048, 138.2529]
+        };
+
+        function initMypageMap() {
+            mypageMap = L.map('mypage-map').setView([36.2048, 138.2529], 5);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(mypageMap);
+
+            setTimeout(() => {
+                if (mypageMap) {
+                    mypageMap.invalidateSize();
+                }
+            }, 100);
+        }
+
+        function updateMypageMapMarker(destination) {
+            const coords = mypageDestinationCoords[destination];
+            if (coords && mypageMap) {
+                mypageMap.setView(coords, 12);
+                if (mypageMarker) mypageMap.removeLayer(mypageMarker);
+                mypageMarker = L.marker(coords).bindPopup(`<b>${destination}</b>`).addTo(mypageMap);
+                mypageMarker.openPopup();
+            }
+        }
+
+        window.addEventListener('load', () => {
+            initMypageMap();
         });
     </script>
 </body>

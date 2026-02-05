@@ -8,6 +8,31 @@
     <link rel="stylesheet" href="{% static 'travel/style.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <style>
+        .plan-section .plan-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+        
+        #plan-map {
+            height: 600px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            background: #f0f0f0;
+        }
+        
+        @media (max-width: 768px) {
+            .plan-section .plan-container {
+                grid-template-columns: 1fr;
+            }
+            #plan-map {
+                height: 400px;
+            }
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -86,6 +111,13 @@
                             <i class="fas fa-magic"></i> プランを生成
                         </button>
                     </form>
+                </div>
+
+                <!-- 地図表示 -->
+                <div>
+                    <h3 style="margin-bottom: 15px;">📍 目的地の場所</h3>
+                    <div id="plan-map"></div>
+                    <p style="text-align: center; margin-top: 10px; color: #888; font-size: 0.9rem;">入力した目的地がここに表示されます</p>
                 </div>
 
                 <!-- 生成されたプラン表示 -->
@@ -359,6 +391,51 @@
             sideMenu.classList.remove('open');
             menuBg.classList.remove('show');
         });
+
+        // 地図初期化
+        let map;
+        let marker;
+
+        function initMap() {
+            map = L.map('plan-map').setView([36.2025, 138.2529], 5);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+        }
+
+        // 目的地の主要座標
+        const destinationCoords = {
+            '京都': [35.0116, 135.7681],
+            '東京': [35.6762, 139.6503],
+            '大阪': [34.6937, 135.5023],
+            '広島': [34.3853, 132.4553],
+            '福岡': [33.5904, 130.4017],
+            '沖縄': [26.2124, 127.6809],
+        };
+
+        // 目的地入力時に地図更新
+        document.querySelector('input[name="destination"]').addEventListener('change', function(e) {
+            const dest = e.target.value;
+            const coords = destinationCoords[dest];
+            
+            if (coords && map) {
+                map.setView(coords, 12);
+                
+                if (marker) map.removeLayer(marker);
+                marker = L.marker(coords)
+                    .bindPopup(`<b>${dest}</b>`)
+                    .addTo(map);
+                marker.openPopup();
+            }
+        });
+
+        // ページロード時に地図初期化
+        window.addEventListener('load', initMap);
     </script>
+    
+    <!-- Leaflet ライブラリ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 </body>
 </html>
