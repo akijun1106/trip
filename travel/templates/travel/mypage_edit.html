@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プロフィール編集 - TRIP</title>
+    <link rel="stylesheet" href="{% static 'travel/style.css' %}">
+</head>
+<body>
+    <header>
+        <div class="logo"><a href="{% url 'index' %}" style="color:white; text-decoration:none;">TRIP</a></div>
+        
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <nav class="side-menu" id="side-menu">
+            <ul>
+                <li><a href="{% url 'index' %}">ホーム</a></li>
+                <li><a href="{% url 'mypage' %}">マイページ</a></li>
+                <li><a href="{% url 'post_create' %}">新規投稿</a></li>
+                <li><a href="{% url 'logout' %}">ログアウト</a></li>
+            </ul>
+        </nav>
+        <div id="menu-bg" class="menu-bg"></div>
+    </header>
+
+    <main>
+        <section class="form-section">
+            <div class="section-title">
+                <h2>プロフィール編集</h2>
+            </div>
+
+            <div class="form-container">
+                <form method="post" class="custom-form">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label>メールアドレス</label>
+                        <input type="email" name="email" value="{{ user.email }}" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>名前（姓）</label>
+                        <input type="text" name="last_name" value="{{ user.last_name }}" class="form-control" placeholder="例：山田">
+                    </div>
+
+                    <div class="form-group">
+                        <label>名前（名）</label>
+                        <input type="text" name="first_name" value="{{ user.first_name }}" class="form-control" placeholder="例：太郎">
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-main">保存</button>
+                        <a href="{% url 'mypage' %}" class="btn-cancel">キャンセル</a>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const hamburger = document.getElementById('hamburger');
+        const sideMenu = document.getElementById('side-menu');
+        const menuBg = document.getElementById('menu-bg');
+
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            sideMenu.classList.toggle('open');
+            menuBg.classList.toggle('show');
+        });
+
+        menuBg.addEventListener('click', () => {
+            hamburger.classList.remove('active');
+            sideMenu.classList.remove('open');
+            menuBg.classList.remove('show');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,364 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>旅行プラン提案 - TRIP</title>
+    <link rel="stylesheet" href="{% static 'travel/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="logo"><a href="{% url 'index' %}" style="color:white; text-decoration:none;">TRIP</a></div>
+        
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <nav class="side-menu" id="side-menu">
+            <ul>
+                <li><a href="{% url 'index' %}">ホーム</a></li>
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'mypage' %}">マイページ</a></li>
+                    <li><a href="{% url 'plan_suggestion' %}">プラン提案</a></li>
+                    <li><a href="{% url 'plan_history' %}">プラン履歴</a></li>
+                    {% if user.is_staff %}
+                    <li><a href="{% url 'admin_dashboard' %}">管理画面</a></li>
+                    {% endif %}
+                    <li><a href="{% url 'post_create' %}">新規投稿</a></li>
+                    <li><a href="{% url 'logout' %}">ログアウト</a></li>
+                {% else %}
+                    <li><a href="{% url 'login' %}">ログイン</a></li>
+                    <li><a href="{% url 'register' %}">登録</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        <div id="menu-bg" class="menu-bg"></div>
+    </header>
+
+    <main>
+        <section class="plan-section">
+            <div class="section-title">
+                <h2>✈️ AIが仮プランを自動生成</h2>
+                <p class="subtitle">行き先と日数を入れるだけで、あなたの好みに合わせたプランが完成！</p>
+            </div>
+
+            <div class="plan-container">
+                <!-- プラン生成フォーム -->
+                <div class="form-box">
+                    <h3>プラン生成フォーム</h3>
+                    
+                    {% if user_preference %}
+                    <div class="preference-info">
+                        <p><i class="fas fa-check-circle"></i> あなたの好みが保存されています</p>
+                        <small>好みを変更したい場合は<a href="{% url 'preference_settings' %}">こちら</a></small>
+                    </div>
+                    {% else %}
+                    <div class="preference-warning">
+                        <p><i class="fas fa-info-circle"></i> 好みを設定してより良いプランを受け取ろう！</p>
+                        <a href="{% url 'preference_settings' %}" class="btn-small">好みを設定</a>
+                    </div>
+                    {% endif %}
+
+                    <form method="post" class="custom-form">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label>{{ form.destination.label }}</label>
+                            {{ form.destination }}
+                        </div>
+
+                        <div class="form-group">
+                            <label>{{ form.days.label }}</label>
+                            {{ form.days }}
+                        </div>
+
+                        <div class="form-group">
+                            <label>{{ form.budget.label }}</label>
+                            {{ form.budget }}
+                        </div>
+
+                        <button type="submit" class="btn-main btn-large">
+                            <i class="fas fa-magic"></i> プランを生成
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 生成されたプラン表示 -->
+                {% if generated_plan %}
+                <div class="generated-plan-box">
+                    <div class="plan-header">
+                        <h3><i class="fas fa-calendar-alt"></i> プランが完成しました！</h3>
+                        <span class="plan-date">{{ generated_plan.created_at|date:"Y年m月d日" }}</span>
+                    </div>
+
+                    <div class="plan-content">
+                        <pre>{{ generated_plan.plan_content }}</pre>
+                    </div>
+
+                    <div class="plan-actions">
+                        <a href="{% url 'plan_detail' generated_plan.id %}" class="btn-main">詳細を見る</a>
+                        <a href="{% url 'plan_history' %}" class="btn-secondary">プラン履歴</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- よく使われる目的地 -->
+        <section class="popular-destinations-section">
+            <div class="section-title">
+                <h2>よく選ばれる目的地</h2>
+            </div>
+
+            <div class="destinations-grid">
+                <div class="dest-card" onclick="document.querySelector('input[name=destination]').value='京都'; document.querySelector('input[name=destination]').focus();">
+                    <i class="fas fa-torii-gate"></i>
+                    <h4>京都</h4>
+                    <p>古都の伝統と文化</p>
+                </div>
+                <div class="dest-card" onclick="document.querySelector('input[name=destination]').value='東京'; document.querySelector('input[name=destination]').focus();">
+                    <i class="fas fa-building"></i>
+                    <h4>東京</h4>
+                    <p>最新文化の中心地</p>
+                </div>
+                <div class="dest-card" onclick="document.querySelector('input[name=destination]').value='大阪'; document.querySelector('input[name=destination]').focus();">
+                    <i class="fas fa-utensils"></i>
+                    <h4>大阪</h4>
+                    <p>グルメの宝庫</p>
+                </div>
+                <div class="dest-card" onclick="document.querySelector('input[name=destination]').value='広島'; document.querySelector('input[name=destination]').focus();">
+                    <i class="fas fa-landmark"></i>
+                    <h4>広島</h4>
+                    <p>歴史と平和</p>
+                </div>
+                <div class="dest-card" onclick="document.querySelector('input[name=destination]').value='福岡'; document.querySelector('input[name=destination]').focus();">
+                    <i class="fas fa-bowl-food"></i>
+                    <h4>福岡</h4>
+                    <p>博多ラーメン</p>
+                </div>
+                <div class="dest-card" onclick="document.querySelector('input[name=destination]').value='沖縄'; document.querySelector('input[name=destination]').focus();">
+                    <i class="fas fa-umbrella-beach"></i>
+                    <h4>沖縄</h4>
+                    <p>南国の楽園</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <style>
+        .plan-section {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .plan-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .form-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-box h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            color: var(--text-dark);
+        }
+
+        .preference-info, .preference-warning {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .preference-info {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .preference-info a {
+            color: #155724;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+
+        .preference-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        .preference-warning a {
+            margin-left: 10px;
+        }
+
+        .btn-large {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+        }
+
+        .generated-plan-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--primary);
+        }
+
+        .plan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .plan-header h3 {
+            margin: 0;
+            color: var(--primary);
+        }
+
+        .plan-date {
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        .plan-content {
+            background-color: #f8fbfb;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .plan-content pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            font-family: 'Courier New', monospace;
+        }
+
+        .plan-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-secondary {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .popular-destinations-section {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .destinations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .dest-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 2px solid transparent;
+        }
+
+        .dest-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 5px 15px rgba(135, 206, 235, 0.2);
+        }
+
+        .dest-card i {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .dest-card h4 {
+            margin: 10px 0 5px 0;
+            font-size: 1.1rem;
+            color: var(--text-dark);
+        }
+
+        .dest-card p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        @media (max-width: 768px) {
+            .plan-container {
+                grid-template-columns: 1fr;
+            }
+
+            .destinations-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+        }
+    </style>
+
+    <script>
+        const hamburger = document.getElementById('hamburger');
+        const sideMenu = document.getElementById('side-menu');
+        const menuBg = document.getElementById('menu-bg');
+
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            sideMenu.classList.toggle('open');
+            menuBg.classList.toggle('show');
+        });
+
+        menuBg.addEventListener('click', () => {
+            hamburger.classList.remove('active');
+            sideMenu.classList.remove('open');
+            menuBg.classList.remove('show');
+        });
+    </script>
+</body>
+</html>

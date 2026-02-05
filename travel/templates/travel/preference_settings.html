@@ -1,0 +1,145 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旅行好み設定 - TRIP</title>
+    <link rel="stylesheet" href="{% static 'travel/style.css' %}">
+</head>
+<body>
+    <header>
+        <div class="logo"><a href="{% url 'index' %}" style="color:white; text-decoration:none;">TRIP</a></div>
+        
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <nav class="side-menu" id="side-menu">
+            <ul>
+                <li><a href="{% url 'index' %}">ホーム</a></li>
+                <li><a href="{% url 'mypage' %}">マイページ</a></li>
+                <li><a href="{% url 'plan_suggestion' %}">プラン提案</a></li>
+                <li><a href="{% url 'post_create' %}">新規投稿</a></li>
+                <li><a href="{% url 'logout' %}">ログアウト</a></li>
+            </ul>
+        </nav>
+        <div id="menu-bg" class="menu-bg"></div>
+    </header>
+
+    <main>
+        <section class="form-section">
+            <div class="section-title">
+                <h2>旅行好み設定</h2>
+                <p class="subtitle">あなたの好みを教えてください。これがプラン生成の参考になります。</p>
+            </div>
+
+            <div class="form-container">
+                <form method="post" class="custom-form">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label>{{ form.favorite_food.label }}</label>
+                        {{ form.favorite_food }}
+                        <small class="help-text">
+                            <i class="fas fa-fork-and-knife"></i>
+                            プランに含まれるグルメ情報に影響します
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.favorite_activity.label }}</label>
+                        {{ form.favorite_activity }}
+                        <small class="help-text">
+                            <i class="fas fa-hiking"></i>
+                            プランのアクティビティに影響します
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ form.budget_per_day.label }}</label>
+                        {{ form.budget_per_day }}
+                        <small class="help-text">
+                            <i class="fas fa-wallet"></i>
+                            1日の予算目安を設定してください
+                        </small>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-main">保存</button>
+                        <a href="{% url 'mypage' %}" class="btn-cancel">キャンセル</a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="info-box">
+                <h3><i class="fas fa-lightbulb"></i> ヒント</h3>
+                <ul>
+                    <li>好みを設定することで、より個人に合わせたプランが生成されます</li>
+                    <li>いつでも好みは変更できます</li>
+                    <li>プランを生成するたびに、あなたの好みはシステムに学習されます</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <style>
+        .subtitle {
+            font-size: 1rem;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .help-text {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .info-box {
+            max-width: 600px;
+            margin: 40px auto 0;
+            background: #f0f7ff;
+            border-left: 4px solid var(--primary);
+            padding: 20px;
+            border-radius: 6px;
+        }
+
+        .info-box h3 {
+            margin-top: 0;
+            color: var(--primary);
+        }
+
+        .info-box ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .info-box li {
+            margin: 8px 0;
+            color: #555;
+        }
+    </style>
+
+    <script>
+        const hamburger = document.getElementById('hamburger');
+        const sideMenu = document.getElementById('side-menu');
+        const menuBg = document.getElementById('menu-bg');
+
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            sideMenu.classList.toggle('open');
+            menuBg.classList.toggle('show');
+        });
+
+        menuBg.addEventListener('click', () => {
+            hamburger.classList.remove('active');
+            sideMenu.classList.remove('open');
+            menuBg.classList.remove('show');
+        });
+    </script>
+</body>
+</html>

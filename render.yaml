@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: trip-app
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput
+    startCommand: gunicorn config.wsgi
+    envVars:
+      - key: DEBUG
+        value: false
+      - key: PYTHON_VERSION
+        value: 3.13.9
+databases:
+  - name: trip_db
+    databaseName: trip_production
+    plan: free
