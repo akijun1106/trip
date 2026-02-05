@@ -1,8 +1,9 @@
-from django.shortcuts import render, redirect
-from .models import Destination, TravelPost, UserPreference, TravelPlan
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Destination, TravelPost, UserPreference, TravelPlan, TravelRoute
 from .forms import TravelPostForm, UserPreferenceForm, TravelPlanRequestForm
 from django.db.models import Q
 import random
+import json
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -11,6 +12,7 @@ from django.http import JsonResponse
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from .plan_generator import generate_travel_plan
+from geopy.distance import geodesic
 
 # ホーム画面（おすすめ表示） - ログイン必須
 @login_required(login_url='login')
@@ -208,3 +210,47 @@ def admin_dashboard(request):
         'total_posts': posts.count(),
         'total_destinations': destinations.count(),
     })
+
+
+# インタラクティブルートエディタ
+@login_required(login_url='login')
+def route_editor(request, plan_id):
+    plan = get_object_or_404(TravelPlan, id=plan_id, user=request.user)
+    
+    # ルートがなければ作成
+    route, created = TravelRoute.objects.get_or_create(plan=plan)
+    
+    return render(request, 'travel/route_editor.html', {
+        'plan': plan,
+        'route': route,
+    })
+
+
+# API: 距離・時間計算
+@require_POST
+@login_required(login_url='login')
+def calculate_distance_api(request):
+    try:
+        data = json.loads(request.body)
+        waypoints = data.get('waypoints', [])
+        
+        if len(waypoints) < 2:
+            return JsonResponse({'error': 'ウェイポイントが2つ以上必要です'}, status=400)
+        
+        # 距離計算
+        total_distance = 0
+        for i in range(len(waypoints) - 1):
+            p1 = (waypoints[i]['lat'], waypoints[i]['lng'])
+            p2 = (waypoints[i+1]['lat'], waypoints[i+1]['lng'])
+            distance = geodesic(p1, p2).kilometers
+            total_distance += distance
+        
+        # 所要時間推定（平均速度60km/h）
+        total_duration = int((total_distance / 60) * 60)  # 分単位
+        
+        return JsonResponse({
+            'total_distance': round(total_distance, 2),
+            'total_duration': total_duration,
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
