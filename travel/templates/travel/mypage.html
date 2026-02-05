@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="{% static 'travel/style.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 </head>
 <body>
     <header>
@@ -82,7 +81,7 @@
                         <div class="profile-actions">
                             <a href="{% url 'mypage_edit' %}" class="btn-main">プロフィール編集</a>
                             <a href="{% url 'preference_settings' %}" class="btn-secondary">旅行好み設定</a>
-                            <button type="button" class="btn-map" onclick="openMapModal('mypage-map-modal')" style="margin-top: 10px;"><i class="fas fa-map"></i> 🗺️ 地図を表示</button>
+
                         </div>
                     </div>
 
@@ -128,7 +127,6 @@
         </section>
     </main>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script>
         const hamburger = document.getElementById('hamburger');
         const sideMenu = document.getElementById('side-menu');
@@ -145,79 +143,6 @@
             sideMenu.classList.remove('open');
             menuBg.classList.remove('show');
         });
-
-        // 地図モーダル管理
-        let mapInstances = {};
-        let mapMarkers = {};
-
-        const destinationCoords = {
-            '京都': [35.0116, 135.7681],
-            '東京': [35.6762, 139.6503],
-            '大阪': [34.6937, 135.5023],
-            '広島': [34.3853, 132.4553],
-            '福岡': [33.5904, 130.4017],
-            '沖縄': [26.2124, 127.6809],
-        };
-
-        function openMapModal(modalId) {
-            const modal = document.getElementById(modalId);
-            modal.classList.add('show');
-            
-            setTimeout(() => {
-                const mapElement = modal.querySelector('.modal-map');
-                if (mapElement && !mapInstances[modalId]) {
-                    const map = L.map(mapElement).setView([36.2025, 138.2529], 5);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        maxZoom: 19,
-                        attribution: '© OpenStreetMap contributors'
-                    }).addTo(map);
-                    mapInstances[modalId] = map;
-                    
-                    // 日本全体の目印を表示
-                    const marker = L.marker([36.2025, 138.2529])
-                        .bindPopup('<b>日本</b>')
-                        .addTo(map);
-                    mapMarkers[modalId] = marker;
-                }
-            }, 100);
-        }
-
-        function closeMapModal(modalId) {
-            const modal = document.getElementById(modalId);
-            modal.classList.remove('show');
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // モーダルの閉じるボタン
-            document.querySelectorAll('.modal-close').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const modal = e.target.closest('.map-modal');
-                    closeMapModal(modal.id);
-                });
-            });
-            
-            // モーダル背景クリックで閉じる
-            document.querySelectorAll('.map-modal').forEach(modal => {
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        closeMapModal(modal.id);
-                    }
-                });
-            });
-        });
     </script>
-
-    <!-- 地図モーダル -->
-    <div id="mypage-map-modal" class="map-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>📍 旅行地図</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="modal-map" id="mypage-modal-map"></div>
-            </div>
-        </div>
-    </div>
 </body>
 </html>
