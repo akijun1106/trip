@@ -15,7 +15,10 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-=!=x$-9e4rkc@gbp8k&%e
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,*.onrender.com,trip-app-monr.onrender.com').split(',')
+if os.environ.get('ALLOWED_HOSTS'):
+    ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(',')
+else:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.onrender.com', 'trip-app-monr.onrender.com', '*']
 
 
 # Application definition
@@ -159,13 +162,14 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Security settings for production
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
+    SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False') == 'True'
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_SECURITY_POLICY = {
         "default-src": ("'self'",),
     }
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # CSRF/CORS settings
 CSRF_TRUSTED_ORIGINS = [
