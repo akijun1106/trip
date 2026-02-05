@@ -3,7 +3,6 @@ services:
     name: trip-app
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt
     startCommand: gunicorn config.wsgi --workers 2 --worker-class sync --timeout 60 --access-logfile -
     envVars:
       - key: DEBUG
