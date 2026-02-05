@@ -12,7 +12,8 @@ from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from .plan_generator import generate_travel_plan
 
-# ホーム画面（おすすめ表示）
+# ホーム画面（おすすめ表示） - ログイン必須
+@login_required(login_url='login')
 @cache_page(60 * 5)  # 5分間キャッシュ
 def index(request):
     destinations = Destination.objects.all()
@@ -47,6 +48,10 @@ def search(request):
 
 # ユーザー登録
 def register(request):
+    # ログイン済みならホームへリダイレクト
+    if request.user.is_authenticated:
+        return redirect('index')
+    
     if request.method == 'POST':
         username = request.POST.get('username')
         email = request.POST.get('email')
@@ -70,6 +75,10 @@ def register(request):
 
 # ログイン
 def login_view(request):
+    # ログイン済みならホームへリダイレクト
+    if request.user.is_authenticated:
+        return redirect('index')
+    
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
