@@ -216,6 +216,48 @@ main {
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 20px;
     }
+    
+    /* パソコン用ナビゲーション表示 */
+    .hamburger {
+        display: none;
+    }
+    
+    .side-menu {
+        position: static !important;
+        width: auto !important;
+        height: auto !important;
+        background: transparent !important;
+        right: auto !important;
+        padding-top: 0 !important;
+        display: flex !important;
+        flex-direction: row !important;
+    }
+    
+    .side-menu ul {
+        display: flex !important;
+        gap: 20px;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .side-menu li {
+        display: inline-block;
+        list-style: none;
+    }
+    
+    .side-menu a {
+        color: white !important;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .side-menu a:hover {
+        opacity: 0.8;
+    }
+    
+    .menu-bg {
+        display: none !important;
+    }
 }
 
 .post-card {
