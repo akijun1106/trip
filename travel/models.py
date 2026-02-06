@@ -77,6 +77,7 @@ class TravelPost(models.Model):
         ('couple', 'カップル'),
     ]
 
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='travelpost_set', null=True, blank=True)
     # title を start_point に変更し、end_point と via_points を追加
     start_point = models.CharField("出発地点", max_length=100)
     end_point = models.CharField("到着地点", max_length=100)
@@ -87,6 +88,8 @@ class TravelPost(models.Model):
     transportation = models.CharField("交通手段", max_length=100)
     content = models.TextField("思い出の感想")
     category = models.CharField("カテゴリ", max_length=20, choices=CATEGORY_CHOICES)
+    image = models.ImageField("写真", upload_to='posts/', blank=True, null=True)
+    video = models.FileField("動画", upload_to='posts/', blank=True, null=True, help_text="MP4、WebMなどの動画ファイル")
     created_at = models.DateTimeField("投稿日時", auto_now_add=True)
 
     class Meta:

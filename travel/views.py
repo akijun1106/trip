@@ -24,12 +24,15 @@ def index(request):
     posts = TravelPost.objects.all().order_by('-created_at')
     return render(request, 'travel/index.html', {'recommended': recommended, 'posts': posts})
 
-# 投稿ページ用の関数（これが足りなかった！）
+# 投稿ページ用の関数
+@login_required(login_url='login')
 def post_create(request):
     if request.method == "POST":
-        form = TravelPostForm(request.POST)
+        form = TravelPostForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            post = form.save(commit=False)
+            post.user = request.user
+            post.save()
             return redirect('index') # 投稿後はホームへ
     else:
         form = TravelPostForm()

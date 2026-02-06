@@ -5,7 +5,7 @@ class TravelPostForm(forms.ModelForm):
     class Meta:
         model = TravelPost
         # titleを外して、新しいフィールドを追加
-        fields = ['start_point', 'end_point', 'cost', 'duration', 'transportation', 'content', 'category']
+        fields = ['start_point', 'end_point', 'cost', 'duration', 'transportation', 'content', 'image', 'video', 'category']
         labels = {
             'start_point': '出発地点',
             'end_point': '到着地点',
@@ -13,6 +13,8 @@ class TravelPostForm(forms.ModelForm):
             'duration': 'かかった時間',
             'transportation': '移動手段',
             'content': '思い出の感想',
+            'image': '写真をアップロード',
+            'video': '動画をアップロード',
             'category': 'シチュエーション',
         }
         widgets = {
@@ -21,7 +23,9 @@ class TravelPostForm(forms.ModelForm):
             'cost': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0'}),
             'duration': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '例：2時間30分'}),
             'transportation': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '例：新幹線'}),
-            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': '旅の感想を記入してください'}),
+            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': '旅の感想を記入してください'}),
+            'image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'video': forms.FileInput(attrs={'class': 'form-control', 'accept': 'video/*'}),
             'category': forms.Select(attrs={'class': 'form-control'}),
         }
 
