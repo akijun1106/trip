@@ -85,7 +85,16 @@ class TravelPost(models.Model):
     
     cost = models.IntegerField("旅費（円）", help_text="数値のみ入力してください")
     duration = models.CharField("所要時間", max_length=50)
-    transportation = models.CharField("交通手段", max_length=100)
+    TRANSPORT_CHOICES = [
+        ('walk', '徒歩'),
+        ('bike', '自転車'),
+        ('car', 'くるま'),
+        ('bus', 'バス'),
+        ('train', '電車'),
+        ('shinkansen', '新幹線'),
+        ('plane', '飛行機'),
+    ]
+    transportation = models.CharField("交通手段", max_length=20, choices=TRANSPORT_CHOICES, default='walk')
     content = models.TextField("思い出の感想")
     category = models.CharField("カテゴリ", max_length=20, choices=CATEGORY_CHOICES)
     image = models.ImageField("写真", upload_to='posts/', blank=True, null=True)

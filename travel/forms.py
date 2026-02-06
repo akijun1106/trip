@@ -23,6 +23,7 @@ class TravelPostForm(forms.ModelForm):
             'cost': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0'}),
             'duration': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '例：2時間30分'}),
             'transportation': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '例：新幹線'}),
+            'transportation': forms.Select(attrs={'class': 'form-control'}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': '旅の感想を記入してください'}),
             'image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'video': forms.FileInput(attrs={'class': 'form-control', 'accept': 'video/*'}),
