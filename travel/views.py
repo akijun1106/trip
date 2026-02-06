@@ -101,6 +101,12 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
+            # Remember-me: 30 days if checked, otherwise expire on browser close
+            remember = request.POST.get('remember')
+            if remember:
+                request.session.set_expiry(60 * 60 * 24 * 30)  # 30 days
+            else:
+                request.session.set_expiry(0)  # expire at browser close
             return redirect('index')
         else:
             return render(request, 'travel/login.html', {'error': 'ユーザー名またはパスワードが間違っています'})
