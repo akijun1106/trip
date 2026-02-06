@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRIP</title>
+    <link rel="stylesheet" href="{% static 'travel/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="logo">TRIP</div>
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <nav class="side-menu" id="side-menu">
+            <ul>
+                <li><a href="{% url 'index' %}">ホーム</a></li>
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'mypage' %}">マイページ</a></li>
+                    <li><a href="{% url 'plan_suggestion' %}">プラン提案</a></li>
+                    <li><a href="{% url 'plan_history' %}">プラン履歴</a></li>
+                    <li><a href="{% url 'plan_builder' %}">プラン計画</a></li>
+                    <li><a href="{% url 'calendar' %}">カレンダー</a></li>
+                    {% if user.is_staff %}
+                    <li><a href="{% url 'admin_dashboard' %}">管理画面</a></li>
+                    {% endif %}
+                    <li><a href="{% url 'post_create' %}">新規投稿</a></li>
+                    <li><a href="{% url 'logout' %}">ログアウト</a></li>
+                {% else %}
+                    <li><a href="{% url 'login' %}">ログイン</a></li>
+                    <li><a href="{% url 'register' %}">登録</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        <div id="menu-bg" class="menu-bg"></div>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+        const hamburger = document.getElementById('hamburger');
+        const sideMenu = document.getElementById('side-menu');
+        const menuBg = document.getElementById('menu-bg');
+        if(hamburger){
+            hamburger.addEventListener('click', () => {
+                hamburger.classList.toggle('active');
+                sideMenu.classList.toggle('open');
+                menuBg.classList.toggle('show');
+            });
+        }
+        if(menuBg){
+            menuBg.addEventListener('click', () => {
+                hamburger.classList.remove('active');
+                sideMenu.classList.remove('open');
+                menuBg.classList.remove('show');
+            });
+        }
+    </script>
+</body>
+</html>
