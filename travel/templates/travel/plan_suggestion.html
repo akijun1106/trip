@@ -27,6 +27,8 @@
                     <li><a href="{% url 'mypage' %}">マイページ</a></li>
                     <li><a href="{% url 'plan_suggestion' %}">プラン提案</a></li>
                     <li><a href="{% url 'plan_history' %}">プラン履歴</a></li>
+                    <li><a href="{% url 'plan_builder' %}">プラン計画</a></li>
+                    <li><a href="{% url 'calendar' %}">カレンダー</a></li>
                     {% if user.is_staff %}
                     <li><a href="{% url 'admin_dashboard' %}">管理画面</a></li>
                     {% endif %}

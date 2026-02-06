@@ -15,6 +15,8 @@ urlpatterns = [
     path('plan/history/', views.plan_history, name='plan_history'),
     path('plan/<int:plan_id>/', views.plan_detail, name='plan_detail'),
     path('plan/<int:plan_id>/route/', views.route_editor, name='route_editor'),
+    path('plan/builder/', views.plan_builder, name='plan_builder'),
+    path('calendar/', views.calendar, name='calendar'),
     path('api/calculate-distance/', views.calculate_distance_api, name='calculate_distance_api'),
     path('admin/', views.admin_dashboard, name='admin_dashboard'),
 ]

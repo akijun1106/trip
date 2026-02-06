@@ -13,6 +13,7 @@ from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from .plan_generator import generate_travel_plan
 from geopy.distance import geodesic
+from django.contrib.auth.decorators import login_required
 
 # ホーム画面（おすすめ表示） - ログイン必須
 @login_required(login_url='login')
@@ -192,6 +193,59 @@ def plan_suggestion(request):
         'generated_plan': generated_plan,
         'user_preference': user_preference,
     })
+
+
+@login_required(login_url='login')
+def plan_builder(request):
+    """Simple multi-stop plan builder: accepts multiple start/end legs and saves a TravelPlan."""
+    if request.method == 'POST':
+        starts = request.POST.getlist('start')
+        ends = request.POST.getlist('end')
+        transports = request.POST.getlist('transport')
+        leg_costs = request.POST.getlist('leg_cost')
+        days = int(request.POST.get('days') or 1)
+        total_cost = request.POST.get('total_cost') or None
+
+        legs = []
+        for i in range(max(len(starts), len(ends))):
+            leg = {
+                'start': starts[i] if i < len(starts) else '',
+                'end': ends[i] if i < len(ends) else '',
+                'transport': transports[i] if i < len(transports) else '',
+                'cost': int(leg_costs[i]) if i < len(leg_costs) and leg_costs[i].isdigit() else None,
+            }
+            legs.append(leg)
+
+        # Save as TravelPlan: store legs JSON in plan_content, destination = last end
+        import json
+        plan_content = json.dumps({'legs': legs})
+        destination_summary = ','.join([l['end'] for l in legs if l.get('end')]) or '未設定'
+
+        travel_plan = TravelPlan.objects.create(
+            user=request.user,
+            destination=destination_summary,
+            days=days,
+            plan_content=plan_content,
+            favorite_food='',
+            favorite_activity='',
+        )
+
+        return redirect('plan_detail', plan_id=travel_plan.id)
+
+    return render(request, 'travel/plan_builder.html')
+
+
+@login_required(login_url='login')
+def calendar(request):
+    events = request.session.get('calendar_events', [])
+    if request.method == 'POST':
+        date = request.POST.get('date')
+        title = request.POST.get('title')
+        if date and title:
+            events.append({'date': date, 'title': title})
+            request.session['calendar_events'] = events
+            return redirect('calendar')
+    return render(request, 'travel/calendar.html', {'events': events})
 
 # プラン履歴
 @login_required(login_url='login')

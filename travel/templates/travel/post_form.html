@@ -27,6 +27,8 @@
                     <li><a href="{% url 'admin_dashboard' %}">管理画面</a></li>
                     {% endif %}
                     <li><a href="{% url 'post_create' %}">新規投稿</a></li>
+                    <li><a href="{% url 'plan_builder' %}">プラン計画</a></li>
+                    <li><a href="{% url 'calendar' %}">カレンダー</a></li>
                     <li><a href="{% url 'logout' %}">ログアウト</a></li>
                 {% else %}
                     <li><a href="{% url 'login' %}">ログイン</a></li>
