@@ -1,29 +1,55 @@
 {% extends 'travel/base.html' %}
 {% block content %}
 <h1 class="calendar-title">カレンダー</h1>
-<div class="calendar-container">
-  <div id="calendar"></div>
-  <form method="post" class="calendar-form">
-    {% csrf_token %}
-    <input type="hidden" name="date" id="selected-date">
-    <label>タイトル: <input type="text" name="title" id="event-title" required></label>
-    <button type="submit">追加</button>
-  </form>
-</div>
-<div class="calendar-legend">
-  <span class="legend-box legend-event"></span>予定あり
-  <span class="legend-box legend-selected"></span>選択中
+<div class="calendar-flex-wrap">
+  <div class="calendar-container">
+    <div id="calendar"></div>
+    <form method="post" class="calendar-form">
+      {% csrf_token %}
+      <input type="hidden" name="date" id="selected-date">
+      <label>タイトル: <input type="text" name="title" id="event-title" required></label>
+      <label>種類:
+        <select name="type" id="event-type" required>
+          <option value="予定">予定</option>
+          <option value="仕事">仕事</option>
+          <option value="旅行">旅行</option>
+          <option value="記念日">記念日</option>
+          <option value="その他">その他</option>
+        </select>
+      </label>
+      <button type="submit">追加</button>
+    </form>
+  </div>
+  <div class="calendar-legend legend-right">
+    <div class="legend-row"><span class="legend-box legend-event1"></span>予定</div>
+    <div class="legend-row"><span class="legend-box legend-event2"></span>仕事</div>
+    <div class="legend-row"><span class="legend-box legend-event3"></span>旅行</div>
+    <div class="legend-row"><span class="legend-box legend-event4"></span>記念日</div>
+    <div class="legend-row"><span class="legend-box legend-event5"></span>その他</div>
+    <div class="legend-row"><span class="legend-box legend-selected"></span>選択中</div>
+    <div style="margin-top:1.5rem;font-size:0.9rem;color:#888;">年/月移動は上下ボタンで</div>
+  </div>
 </div>
 <script>
-// 柔らかいカレンダー生成
 const today = new Date();
 let selectedDate = null;
-const events = {{ events|safe }};
-
+let currentYear = today.getFullYear();
+let currentMonth = today.getMonth()+1;
+const events = ({{ events|safe }}).map(ev=>({
+  ...ev,
+  type: ev.type || '予定'
+}));
+const typeColor = {
+  '予定': 'event1',
+  '仕事': 'event2',
+  '旅行': 'event3',
+  '記念日': 'event4',
+  'その他': 'event5',
+};
 function pad(n){ return n<10 ? '0'+n : n; }
 function formatDate(y,m,d){ return `${y}-${pad(m)}-${pad(d)}`; }
-
 function renderCalendar(year, month) {
+  currentYear = year; currentMonth = month;
   const cal = document.getElementById('calendar');
   cal.innerHTML = '';
   const firstDay = new Date(year, month-1, 1);
@@ -32,9 +58,11 @@ function renderCalendar(year, month) {
   const startWeek = firstDay.getDay();
   const weeks = Math.ceil((startWeek + daysInMonth) / 7);
   let html = `<div class='cal-header'>
+    <button class='cal-nav' id='prev-year'>&lt;&lt;</button>
     <button class='cal-nav' id='prev-month'>&lt;</button>
     <span class='cal-month'>${year}年${month}月</span>
     <button class='cal-nav' id='next-month'>&gt;</button>
+    <button class='cal-nav' id='next-year'>&gt;&gt;</button>
   </div>`;
   html += "<table class='cal-table'><thead><tr>";
   ['日','月','火','水','木','金','土'].forEach(d=>html+=`<th>${d}</th>`);
@@ -48,7 +76,7 @@ function renderCalendar(year, month) {
       let event = events.find(ev=>ev.date===cellDate);
       if(w===0 && wd<startWeek){ html+="<td class='cal-cell cal-empty'></td>"; continue; }
       if(day>daysInMonth){ html+="<td class='cal-cell cal-empty'></td>"; continue; }
-      if(event) cellClass+=' cal-event';
+      if(event) cellClass+=` cal-${typeColor[event.type]}`;
       if(selectedDate===cellDate) cellClass+=' cal-selected';
       html+=`<td class='${cellClass}' data-date='${cellDate}'>${day}${event?`<div class='cal-event-title'>${event.title}</div>`:''}</td>`;
       day++;
@@ -57,8 +85,10 @@ function renderCalendar(year, month) {
   }
   html+="</tbody></table>";
   cal.innerHTML = html;
-  document.getElementById('prev-month').onclick = ()=>renderCalendar(year,month-1<1?12:month-1,month-1<1?year-1:year);
-  document.getElementById('next-month').onclick = ()=>renderCalendar(year,month+1>12?1:month+1,month+1>12?year+1:year);
+  document.getElementById('prev-year').onclick = ()=>renderCalendar(year-1,month);
+  document.getElementById('next-year').onclick = ()=>renderCalendar(year+1,month);
+  document.getElementById('prev-month').onclick = ()=>renderCalendar(month-1<1?12:month-1,month-1<1?year-1:year);
+  document.getElementById('next-month').onclick = ()=>renderCalendar(month+1>12?1:month+1,month+1>12?year+1:year);
   document.querySelectorAll('.cal-cell[data-date]').forEach(td=>{
     td.onclick = ()=>{
       selectedDate = td.dataset.date;
@@ -67,6 +97,6 @@ function renderCalendar(year, month) {
     };
   });
 }
-renderCalendar(today.getFullYear(), today.getMonth()+1);
+renderCalendar(currentYear, currentMonth);
 </script>
 {% endblock %}
