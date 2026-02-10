@@ -23,11 +23,11 @@
                 <div class="alert alert-error">{{ error }}</div>
                 {% endif %}
 
-                <form method="post" class="custom-form">
+                <form method="post" action="{% url 'login' %}" class="custom-form">
                     {% csrf_token %}
                     
                     <div class="form-group">
-                        <label>ユーザー名</label>
+                        <label>ユーザー名またはメールアドレス</label>
                         <input type="text" name="username" class="form-control" required>
                     </div>
 
@@ -37,7 +37,9 @@
                     </div>
 
                     <div class="form-group">
-                        <label style="display:flex; align-items:center; gap:8px;"><input type="checkbox" name="remember"> ログイン状態を保持する（30日間）</label>
+                        <label style="display:flex; align-items:center; gap:8px;">
+                            <input type="checkbox" name="remember"> ログイン状態を保持する（30日間）
+                        </label>
                     </div>
 
                     <div class="form-actions">
@@ -45,7 +47,7 @@
                     </div>
 
                     <p class="auth-link">
-                        アカウントをお持ちですか？ <a href="{% url 'register' %}">登録</a>
+                        アカウントをお持ちではないですか？ <a href="{% url 'register' %}">登録</a>
                     </p>
                 </form>
             </div>
