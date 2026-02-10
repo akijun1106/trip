@@ -1,19 +1,72 @@
 {% extends 'travel/base.html' %}
 {% block content %}
-<h1>カレンダー</h1>
-<form method="post">
-  {% csrf_token %}
-  <label>日付: <input type="date" name="date" required></label>
-  <label>タイトル: <input type="text" name="title" required></label>
-  <button type="submit">追加</button>
-</form>
+<h1 class="calendar-title">カレンダー</h1>
+<div class="calendar-container">
+  <div id="calendar"></div>
+  <form method="post" class="calendar-form">
+    {% csrf_token %}
+    <input type="hidden" name="date" id="selected-date">
+    <label>タイトル: <input type="text" name="title" id="event-title" required></label>
+    <button type="submit">追加</button>
+  </form>
+</div>
+<div class="calendar-legend">
+  <span class="legend-box legend-event"></span>予定あり
+  <span class="legend-box legend-selected"></span>選択中
+</div>
+<script>
+// 柔らかいカレンダー生成
+const today = new Date();
+let selectedDate = null;
+const events = {{ events|safe }};
 
-<h2>予定一覧</h2>
-<ul>
-  {% for ev in events %}
-    <li>{{ ev.date }} - {{ ev.title }}</li>
-  {% empty %}
-    <li>予定はありません。</li>
-  {% endfor %}
-</ul>
+function pad(n){ return n<10 ? '0'+n : n; }
+function formatDate(y,m,d){ return `${y}-${pad(m)}-${pad(d)}`; }
+
+function renderCalendar(year, month) {
+  const cal = document.getElementById('calendar');
+  cal.innerHTML = '';
+  const firstDay = new Date(year, month-1, 1);
+  const lastDay = new Date(year, month, 0);
+  const daysInMonth = lastDay.getDate();
+  const startWeek = firstDay.getDay();
+  const weeks = Math.ceil((startWeek + daysInMonth) / 7);
+  let html = `<div class='cal-header'>
+    <button class='cal-nav' id='prev-month'>&lt;</button>
+    <span class='cal-month'>${year}年${month}月</span>
+    <button class='cal-nav' id='next-month'>&gt;</button>
+  </div>`;
+  html += "<table class='cal-table'><thead><tr>";
+  ['日','月','火','水','木','金','土'].forEach(d=>html+=`<th>${d}</th>`);
+  html += "</tr></thead><tbody>";
+  let day = 1;
+  for(let w=0;w<weeks;w++){
+    html+="<tr>";
+    for(let wd=0;wd<7;wd++){
+      const cellDate = formatDate(year,month,day);
+      let cellClass = 'cal-cell';
+      let event = events.find(ev=>ev.date===cellDate);
+      if(w===0 && wd<startWeek){ html+="<td class='cal-cell cal-empty'></td>"; continue; }
+      if(day>daysInMonth){ html+="<td class='cal-cell cal-empty'></td>"; continue; }
+      if(event) cellClass+=' cal-event';
+      if(selectedDate===cellDate) cellClass+=' cal-selected';
+      html+=`<td class='${cellClass}' data-date='${cellDate}'>${day}${event?`<div class='cal-event-title'>${event.title}</div>`:''}</td>`;
+      day++;
+    }
+    html+="</tr>";
+  }
+  html+="</tbody></table>";
+  cal.innerHTML = html;
+  document.getElementById('prev-month').onclick = ()=>renderCalendar(year,month-1<1?12:month-1,month-1<1?year-1:year);
+  document.getElementById('next-month').onclick = ()=>renderCalendar(year,month+1>12?1:month+1,month+1>12?year+1:year);
+  document.querySelectorAll('.cal-cell[data-date]').forEach(td=>{
+    td.onclick = ()=>{
+      selectedDate = td.dataset.date;
+      document.getElementById('selected-date').value = selectedDate;
+      renderCalendar(year,month);
+    };
+  });
+}
+renderCalendar(today.getFullYear(), today.getMonth()+1);
+</script>
 {% endblock %}
