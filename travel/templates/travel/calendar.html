@@ -85,10 +85,14 @@ function renderCalendar(year, month) {
   }
   html+="</tbody></table>";
   cal.innerHTML = html;
-  document.getElementById('prev-year').onclick = ()=>renderCalendar(year-1,month);
-  document.getElementById('next-year').onclick = ()=>renderCalendar(year+1,month);
-  document.getElementById('prev-month').onclick = ()=>renderCalendar(month-1<1?12:month-1,month-1<1?year-1:year);
-  document.getElementById('next-month').onclick = ()=>renderCalendar(month+1>12?1:month+1,month+1>12?year+1:year);
+  document.getElementById('prev-year').onclick = () => renderCalendar(year - 1, month);
+  document.getElementById('next-year').onclick = () => renderCalendar(year + 1, month);
+  const prevMonth = month - 1 < 1 ? 12 : month - 1;
+  const prevYear = month - 1 < 1 ? year - 1 : year;
+  const nextMonth = month + 1 > 12 ? 1 : month + 1;
+  const nextYear = month + 1 > 12 ? year + 1 : year;
+  document.getElementById('prev-month').onclick = () => renderCalendar(prevYear, prevMonth);
+  document.getElementById('next-month').onclick = () => renderCalendar(nextYear, nextMonth);
   document.querySelectorAll('.cal-cell[data-date]').forEach(td=>{
     td.onclick = ()=>{
       selectedDate = td.dataset.date;
