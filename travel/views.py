@@ -86,19 +86,20 @@ def login_view(request):
         return redirect('index')
     
     if request.method == 'POST':
-        identifier = request.POST.get('username')  # ユーザー名またはメールアドレス
-        password = request.POST.get('password')
+        identifier = (request.POST.get('username') or '').strip()  # ユーザー名またはメールアドレス
+        password = (request.POST.get('password') or '').strip()
+
+        if not identifier or not password:
+            return render(request, 'travel/login.html', {'error': 'ユーザー名またはメールアドレスとパスワードを入力してください'})
 
         # まずユーザー名で認証を試みる
         user = authenticate(request, username=identifier, password=password)
 
         # ユーザー名で見つからなければメールアドレスで検索して再認証
         if user is None:
-            try:
-                user_obj = User.objects.get(email__iexact=identifier)
+            user_obj = User.objects.filter(email__iexact=identifier).first()
+            if user_obj:
                 user = authenticate(request, username=user_obj.username, password=password)
-            except User.DoesNotExist:
-                user = None
 
         if user is not None:
             login(request, user)

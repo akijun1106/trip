@@ -406,6 +406,27 @@ main {
     min-height: 44px;
 }
 
+  /* ログインのチェックボックスは通常の見た目に戻す */
+  .form-group input[type="checkbox"] {
+    width: auto;
+    min-height: auto;
+    padding: 0;
+    margin: 0;
+    -webkit-appearance: auto;
+    appearance: auto;
+  }
+
+  .remember-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .remember-label {
+    margin: 0;
+    font-weight: 600;
+  }
+
 .form-group input:focus,
 .form-group textarea:focus {
     outline: none;
@@ -3246,4 +3267,7 @@ body {
     flex-direction: column;
     justify-content: center;
     padding: 5px;
-    -webkit-touch-callout: none
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
