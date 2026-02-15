@@ -66,7 +66,7 @@ FOOD_TEMPLATES = {
     'local': 'ローカルグルメと屋台',
 }
 
-def generate_travel_plan(destination, days, user_preference=None, budget=None):
+def generate_travel_plan(destination, days, user_preference=None, budget=None, suggestions=None):
     """
     旅行プラン生成関数
     
@@ -110,17 +110,29 @@ def generate_travel_plan(destination, days, user_preference=None, budget=None):
     plan_lines.append(f"• アクティビティ: {activity_desc}")
     plan_lines.append(f"• グルメ: {food_desc}\n")
     
+    # AIおすすめ候補
+    suggested_names = []
+    if suggestions:
+        plan_lines.append("✨ AIおすすめ候補:")
+        for suggestion in suggestions:
+            label = suggestion.get('label') or 'スポット'
+            name = suggestion.get('name')
+            if name:
+                plan_lines.append(f"• {name}（{label}）")
+                suggested_names.append(name)
+        plan_lines.append("")
+
     # 日数別プラン
     plan_lines.append("📅 日程:")
     
     if days == 1:
-        plan_lines.extend(_generate_one_day_plan(destination, dest_info, favorite_activity))
+        plan_lines.extend(_generate_one_day_plan(destination, dest_info, favorite_activity, suggested_names))
     elif days == 2:
-        plan_lines.extend(_generate_two_day_plan(destination, dest_info, favorite_activity))
+        plan_lines.extend(_generate_two_day_plan(destination, dest_info, favorite_activity, suggested_names))
     elif days == 3:
-        plan_lines.extend(_generate_three_day_plan(destination, dest_info, favorite_activity))
+        plan_lines.extend(_generate_three_day_plan(destination, dest_info, favorite_activity, suggested_names))
     elif days >= 4:
-        plan_lines.extend(_generate_multi_day_plan(destination, days, dest_info, favorite_activity))
+        plan_lines.extend(_generate_multi_day_plan(destination, days, dest_info, favorite_activity, suggested_names))
     
     # 予算情報
     if budget:
@@ -150,18 +162,32 @@ def generate_travel_plan(destination, days, user_preference=None, budget=None):
         'favorite_activity': favorite_activity,
     }
 
-def _generate_one_day_plan(destination, dest_info, activity):
+def _pick_attractions(dest_info, custom_attractions):
+    if custom_attractions:
+        return custom_attractions
+    if dest_info and 'attractions' in dest_info:
+        return dest_info['attractions']
+    return []
+
+
+def _get_attraction(attractions, index, fallback):
+    if attractions and index < len(attractions):
+        return attractions[index]
+    return fallback
+
+
+def _generate_one_day_plan(destination, dest_info, activity, custom_attractions=None):
     """1日プラン生成"""
     lines = []
     lines.append("\n【1日目】")
     lines.append("• 09:00 - ホテルをチェックアウト")
-    
-    if dest_info and 'attractions' in dest_info:
-        attractions = dest_info['attractions']
-        lines.append(f"• 10:00 - {attractions[0]}を訪問")
-        lines.append(f"• 13:00 - ランチタイム（地元グルメを堪能）")
-        lines.append(f"• 15:00 - {attractions[1] if len(attractions) > 1 else '周辺散策'}")
-        lines.append(f"• 18:00 - ディナー＆夜景スポット")
+
+    attractions = _pick_attractions(dest_info, custom_attractions)
+    if attractions:
+        lines.append(f"• 10:00 - {_get_attraction(attractions, 0, '主要観光地')}を訪問")
+        lines.append("• 13:00 - ランチタイム（地元グルメを堪能）")
+        lines.append(f"• 15:00 - {_get_attraction(attractions, 1, '周辺散策')}")
+        lines.append("• 18:00 - ディナー＆夜景スポット")
     else:
         lines.append("• 10:00 - 主要観光地を訪問")
         lines.append("• 13:00 - ランチタイム")
@@ -172,22 +198,22 @@ def _generate_one_day_plan(destination, dest_info, activity):
     
     return lines
 
-def _generate_two_day_plan(destination, dest_info, activity):
+def _generate_two_day_plan(destination, dest_info, activity, custom_attractions=None):
     """2日プラン生成"""
     lines = []
     lines.append("\n【1日目】")
     
-    if dest_info and 'attractions' in dest_info:
-        attractions = dest_info['attractions']
-        lines.append(f"• 10:00 - {attractions[0]}を訪問")
-        lines.append(f"• 13:00 - ランチ")
-        lines.append(f"• 15:00 - {attractions[1] if len(attractions) > 1 else '周辺散策'}")
+    attractions = _pick_attractions(dest_info, custom_attractions)
+    if attractions:
+        lines.append(f"• 10:00 - {_get_attraction(attractions, 0, '主要観光地')}を訪問")
+        lines.append("• 13:00 - ランチ")
+        lines.append(f"• 15:00 - {_get_attraction(attractions, 1, '周辺散策')}")
         lines.append("• 18:00 - ディナー")
-        
+
         lines.append("\n【2日目】")
-        lines.append(f"• 09:00 - {attractions[2] if len(attractions) > 2 else '別の観光地'}")
+        lines.append(f"• 09:00 - {_get_attraction(attractions, 2, '別の観光地')}")
         lines.append("• 12:00 - ランチ")
-        lines.append(f"• 14:00 - {attractions[3] if len(attractions) > 3 else 'ショッピング'}")
+        lines.append(f"• 14:00 - {_get_attraction(attractions, 3, 'ショッピング')}")
         lines.append("• 17:00 - カフェタイム")
         lines.append("• 18:30 - 帰路")
     else:
@@ -203,7 +229,7 @@ def _generate_two_day_plan(destination, dest_info, activity):
     
     return lines
 
-def _generate_three_day_plan(destination, dest_info, activity):
+def _generate_three_day_plan(destination, dest_info, activity, custom_attractions=None):
     """3日プラン生成"""
     lines = []
     lines.append("\n【1日目】")
@@ -211,15 +237,15 @@ def _generate_three_day_plan(destination, dest_info, activity):
     lines.append("• 夜は地元グルメを堪能")
     
     lines.append("\n【2日目】")
-    if dest_info and 'attractions' in dest_info:
-        attractions = dest_info['attractions']
-        lines.append(f"• 09:00 - {attractions[0]}")
-        lines.append(f"• 12:00 - ランチ")
-        lines.append(f"• 14:00 - {attractions[1] if len(attractions) > 1 else '周辺散策'}")
+    attractions = _pick_attractions(dest_info, custom_attractions)
+    if attractions:
+        lines.append(f"• 09:00 - {_get_attraction(attractions, 0, '主要観光地')}")
+        lines.append("• 12:00 - ランチ")
+        lines.append(f"• 14:00 - {_get_attraction(attractions, 1, '周辺散策')}")
         lines.append("• 18:00 - ディナー")
-        
+
         lines.append("\n【3日目】")
-        lines.append(f"• 09:00 - {attractions[2] if len(attractions) > 2 else '別のスポット'}")
+        lines.append(f"• 09:00 - {_get_attraction(attractions, 2, '別のスポット')}")
         lines.append("• 12:00 - ランチ")
         lines.append("• 14:00 - 自由時間・ショッピング")
         lines.append("• 17:00 - 帰路")
@@ -231,7 +257,7 @@ def _generate_three_day_plan(destination, dest_info, activity):
     
     return lines
 
-def _generate_multi_day_plan(destination, days, dest_info, activity):
+def _generate_multi_day_plan(destination, days, dest_info, activity, custom_attractions=None):
     """4日以上のプラン生成"""
     lines = []
     
@@ -244,8 +270,8 @@ def _generate_multi_day_plan(destination, days, dest_info, activity):
             lines.append("• 最終日：自由時間・ショッピング")
             lines.append("• チェックアウト・帰路")
         else:
-            if dest_info and 'attractions' in dest_info:
-                attractions = dest_info['attractions']
+            attractions = _pick_attractions(dest_info, custom_attractions)
+            if attractions:
                 idx = (i - 2) % len(attractions)
                 lines.append(f"• {attractions[idx]}を中心に観光")
             else:

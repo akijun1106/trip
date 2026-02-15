@@ -82,6 +82,7 @@ class TravelPost(models.Model):
     start_point = models.CharField("出発地点", max_length=100)
     end_point = models.CharField("到着地点", max_length=100)
     via_points = models.TextField("経由地点", blank=True, default='', help_text="JSON形式で経由地点を保存（自動生成）")
+    photo_location = models.CharField("写真の場所", max_length=100, blank=True)
     
     cost = models.IntegerField("旅費（円）", help_text="数値のみ入力してください")
     duration = models.CharField("所要時間", max_length=50)

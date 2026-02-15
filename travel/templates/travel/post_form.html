@@ -71,6 +71,13 @@
                         {{ form.end_point }}
                     </div>
 
+                    <!-- 写真の場所 -->
+                    <div class="form-group">
+                        <label>{{ form.photo_location.label }}</label>
+                        {{ form.photo_location }}
+                        <small style="color: #666;">写真を撮った場所があれば入力してください</small>
+                    </div>
+
                     <!-- その他のフィールド -->
                     <div class="form-group">
                         <label>{{ form.cost.label }}</label>

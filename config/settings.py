@@ -186,3 +186,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # ログイン設定
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'index'
+
+# External APIs
+GOOGLE_PLACES_API_KEY = os.environ.get('GOOGLE_PLACES_API_KEY', '')
