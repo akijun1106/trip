@@ -18,7 +18,6 @@ from django.contrib.auth.decorators import login_required
 
 # ホーム画面（おすすめ表示） - ログイン必須
 @login_required(login_url='login')
-@cache_page(60 * 5)  # 5分間キャッシュ
 def index(request):
     destinations = Destination.objects.all()
     # 1つもデータがないとエラーになるのでチェック
