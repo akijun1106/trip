@@ -30,7 +30,7 @@
             <div class="post-image-container">
                 <img src="{{ post.image.url }}" alt="投稿写真" class="post-image">
                 <div class="image-overlay">
-                    <button class="btn-detail" onclick="openPostDetail({{ post.id }})">詳細を見る</button>
+                    <button class="btn-detail" onclick="openPostDetail('{{ post.id }}')">詳細を見る</button>
                 </div>
             </div>
             {% else %}
@@ -40,7 +40,7 @@
                     <p>写真なし</p>
                 </div>
                 <div class="image-overlay">
-                    <button class="btn-detail" onclick="openPostDetail({{ post.id }})">詳細を見る</button>
+                    <button class="btn-detail" onclick="openPostDetail('{{ post.id }}')">詳細を見る</button>
                 </div>
             </div>
             {% endif %}
@@ -55,7 +55,7 @@
         <!-- 詳細モーダル -->
         <div id="detail-modal-{{ post.id }}" class="detail-modal">
             <div class="modal-content">
-                <button class="modal-close" onclick="closePostDetail({{ post.id }})">&times;</button>
+                <button class="modal-close" onclick="closePostDetail('{{ post.id }}')">×</button>
                 <h3>投稿詳細</h3>
                 
                 {% if post.image %}
