@@ -25,35 +25,52 @@
     </div>
     <div class="post-grid">
         {% for post in posts %}
-        <div class="post-card">
-            <div class="card-header">
-                <span class="category-tag"><i class="fas fa-tag"></i> {{ post.get_category_display }}</span>
-                <span class="post-date">{{ post.created_at|date:"Y.m.d" }}</span>
-            </div>
-
-            <div class="route-container">
-                <div class="route-node">
-                    <i class="fas fa-map-marker-alt start-icon"></i>
-                    <span class="point-text">{{ post.start_point }}</span>
-                </div>
-                <div class="route-line"></div>
-                <div class="route-node">
-                    <i class="fas fa-flag-checkered end-icon"></i>
-                    <span class="point-text">{{ post.end_point }}</span>
+        <div class="post-card-photo">
+            {% if post.image %}
+            <div class="post-image-container">
+                <img src="{{ post.image.url }}" alt="投稿写真" class="post-image">
+                <div class="image-overlay">
+                    <button class="btn-detail" onclick="openPostDetail({{ post.id }})">詳細を見る</button>
                 </div>
             </div>
-
-            <div class="card-stats">
-                <div class="stat-item"><i class="fas fa-yen-sign"></i> <span>{{ post.cost }}</span></div>
-                <div class="stat-item"><i class="fas fa-clock"></i> <span>{{ post.duration }}</span></div>
-                <div class="stat-item"><i class="fas fa-car"></i> <span>{{ post.transportation }}</span></div>
+            {% else %}
+            <div class="post-image-container no-image">
+                <div class="no-image-placeholder">
+                    <i class="fas fa-image"></i>
+                    <p>写真なし</p>
+                </div>
+                <div class="image-overlay">
+                    <button class="btn-detail" onclick="openPostDetail({{ post.id }})">詳細を見る</button>
+                </div>
             </div>
+            {% endif %}
 
-            <div class="card-footer">
-                {% if post.photo_location %}
-                <p class="photo-location"><i class="fas fa-camera"></i> {{ post.photo_location }}</p>
+            <div class="post-info">
+                <p class="post-location"><i class="fas fa-camera"></i> {{ post.photo_location|default:"未設定" }}</p>
+                <p class="post-category"><i class="fas fa-tag"></i> {{ post.get_category_display }}</p>
+                <p class="post-date">{{ post.created_at|date:"Y.m.d" }}</p>
+            </div>
+        </div>
+
+        <!-- 詳細モーダル -->
+        <div id="detail-modal-{{ post.id }}" class="detail-modal">
+            <div class="modal-content">
+                <button class="modal-close" onclick="closePostDetail({{ post.id }})">&times;</button>
+                <h3>投稿詳細</h3>
+                
+                {% if post.image %}
+                <img src="{{ post.image.url }}" alt="投稿写真" class="modal-image">
                 {% endif %}
-                <p>{{ post.content|truncatechars:50 }}</p>
+                
+                <div class="modal-details">
+                    <p><strong>写真の場所:</strong> {{ post.photo_location|default:"未設定" }}</p>
+                    <p><strong>カテゴリ:</strong> {{ post.get_category_display }}</p>
+                    <p><strong>投稿日:</strong> {{ post.created_at|date:"Y年m月d日" }}</p>
+                    {% if post.content %}
+                    <p><strong>感想:</strong></p>
+                    <p>{{ post.content }}</p>
+                    {% endif %}
+                </div>
             </div>
         </div>
         {% empty %}
@@ -61,4 +78,191 @@
         {% endfor %}
     </div>
 </section>
+
+<style>
+    .post-card-photo {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .post-card-photo:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .post-image-container {
+        position: relative;
+        width: 100%;
+        height: 200px;
+        background-color: #f0f0f0;
+        overflow: hidden;
+    }
+
+    .post-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .no-image-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        background-color: #f8fbfb;
+        color: #999;
+    }
+
+    .no-image-placeholder i {
+        font-size: 2rem;
+        margin-bottom: 8px;
+    }
+
+    .image-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .post-card-photo:hover .image-overlay {
+        opacity: 1;
+    }
+
+    .btn-detail {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+
+    .btn-detail:hover {
+        background: #5e9fc9;
+    }
+
+    .post-info {
+        padding: 12px;
+    }
+
+    .post-location {
+        margin: 0 0 6px 0;
+        font-size: 0.85rem;
+        color: #5f6b73;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .post-category {
+        margin: 0 0 6px 0;
+        font-size: 0.8rem;
+        color: #666;
+    }
+
+    .post-date {
+        margin: 0;
+        font-size: 0.75rem;
+        color: #999;
+    }
+
+    .detail-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .detail-modal.show {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        max-width: 600px;
+        width: 100%;
+        padding: 25px;
+        position: relative;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        border: none;
+        font-size: 2rem;
+        cursor: pointer;
+        color: #999;
+    }
+
+    .modal-image {
+        width: 100%;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .modal-details p {
+        margin-bottom: 12px;
+        line-height: 1.6;
+    }
+
+    .empty-msg {
+        text-align: center;
+        color: #999;
+        padding: 30px;
+        font-size: 1rem;
+    }
+</style>
+
+<script>
+    function openPostDetail(postId) {
+        const modal = document.getElementById(`detail-modal-${postId}`);
+        if (modal) {
+            modal.classList.add('show');
+        }
+    }
+
+    function closePostDetail(postId) {
+        const modal = document.getElementById(`detail-modal-${postId}`);
+        if (modal) {
+            modal.classList.remove('show');
+        }
+    }
+
+    // モーダル背景クリックで閉じる
+    document.querySelectorAll('.detail-modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                const postId = modal.id.replace('detail-modal-', '');
+                closePostDetail(postId);
+            }
+        });
+    });
+</script>
 {% endblock %}
