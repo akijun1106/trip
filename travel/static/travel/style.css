@@ -3289,3 +3289,227 @@ body {
     -webkit-user-select: none;
     user-select: none;
 }
+
+/* --- 投稿カード（写真フォーカス） --- */
+.post-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.post-card-photo {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.post-card-photo:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.post-image-container {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    overflow: hidden;
+    background: #f0f0f0;
+}
+
+.post-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.post-image-container.no-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);
+}
+
+.no-image-placeholder {
+    text-align: center;
+    color: #999;
+}
+
+.no-image-placeholder i {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+.image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.post-image-container:hover .image-overlay {
+    opacity: 1;
+}
+
+.btn-detail {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-detail:hover {
+    background: var(--primary-dark);
+    transform: scale(1.05);
+}
+
+.post-info {
+    padding: 1rem;
+}
+
+.post-info p {
+    margin: 0.5rem 0;
+    font-size: 0.95rem;
+}
+
+.post-location {
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.post-category {
+    color: #666;
+}
+
+.post-date {
+    font-size: 0.85rem;
+    color: #999;
+}
+
+/* --- 詳細モーダル --- */
+.detail-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    overflow: auto;
+    padding: 2rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.detail-modal.show {
+    display: flex;
+}
+
+.modal-content {
+    position: relative;
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #999;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: var(--text-main);
+    font-size: 1.5rem;
+}
+
+.modal-image {
+    width: 100%;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.modal-details p {
+    margin: 0.8rem 0;
+    line-height: 1.6;
+}
+
+.modal-details strong {
+    color: var(--primary-dark);
+    font-weight: 600;
+}
+
+.empty-msg {
+    text-align: center;
+    color: #999;
+    font-size: 1.1rem;
+    padding: 3rem 0;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .post-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    
+    .modal-content {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+    
+    .detail-modal {
+        padding: 1rem;
+    }
+}
