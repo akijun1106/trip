@@ -82,6 +82,8 @@ def register(request):
         
         user = User.objects.create_user(username=username, email=email, password=password)
         login(request, user)
+        # 登録後は自動的に30日間ログイン状態を保持
+        request.session.set_expiry(60 * 60 * 24 * 30)
         return redirect('index')
     
     return render(request, 'travel/register.html')

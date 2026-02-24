@@ -187,5 +187,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'index'
 
+# セッション設定
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30日間（秒単位）
+SESSION_SAVE_EVERY_REQUEST = True  # リクエストごとにセッションを保存
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # ブラウザを閉じてもセッションを維持
+
 # External APIs
 GOOGLE_PLACES_API_KEY = os.environ.get('GOOGLE_PLACES_API_KEY', '')
