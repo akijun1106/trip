@@ -15,10 +15,6 @@ from django.conf import settings
 from .plan_generator import generate_travel_plan
 from geopy.distance import geodesic
 from django.contrib.auth.decorators import login_required
-from urllib.parse import urlencode
-from urllib.request import Request, urlopen
-import re
-from collections import Counter
 
 # ホーム画面（おすすめ表示） - ログイン必須
 @login_required(login_url='login')
@@ -177,8 +173,6 @@ def plan_suggestion(request):
     user_preference = UserPreference.objects.filter(user=request.user).first()
     generated_plan = None
     form = TravelPlanRequestForm()
-    api_available = bool(settings.GOOGLE_PLACES_API_KEY)
-    suggestions_for_view = None
     
     if request.method == 'POST':
         form = TravelPlanRequestForm(request.POST)
@@ -186,24 +180,14 @@ def plan_suggestion(request):
             destination = form.cleaned_data['destination']
             days = form.cleaned_data['days']
             budget = form.cleaned_data.get('budget') or None
-            suggestion_count = int(form.cleaned_data.get('suggestion_count') or 3)
-            area_levels = form.cleaned_data.get('area_levels') or ['spot', 'city', 'ward']
 
-            suggestions = _build_place_suggestions(
-                destination=destination,
-                user_preference=user_preference,
-                area_levels=area_levels,
-                suggestion_count=suggestion_count,
-            )
-            suggestions_for_view = suggestions
-
-            # プラン生成
+            # プラン生成（Google API不使用）
             plan_data = generate_travel_plan(
                 destination,
                 days,
                 user_preference,
                 budget,
-                suggestions=suggestions,
+                suggestions=None,
             )
             
             # プランをデータベースに保存
@@ -222,161 +206,7 @@ def plan_suggestion(request):
         'form': form,
         'generated_plan': generated_plan,
         'user_preference': user_preference,
-        'api_available': api_available,
-        'suggestions': suggestions_for_view,
     })
-
-
-def _fetch_google_places(destination):
-    api_key = settings.GOOGLE_PLACES_API_KEY
-    if not api_key:
-        return []
-
-    cache_key = f"places:txt:{destination}"
-    cached = cache.get(cache_key)
-    if cached is not None:
-        return cached
-
-    query = f"{destination} 観光名所"
-    params = {
-        'query': query,
-        'key': api_key,
-        'language': 'ja',
-        'region': 'jp',
-    }
-    url = f"https://maps.googleapis.com/maps/api/place/textsearch/json?{urlencode(params)}"
-
-    try:
-        request = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urlopen(request, timeout=8) as response:
-            data = json.loads(response.read().decode('utf-8'))
-    except Exception:
-        return []
-
-    results = []
-    for item in data.get('results', [])[:12]:
-        name = item.get('name')
-        address = item.get('formatted_address') or ''
-        if name:
-            results.append({'name': name, 'address': address})
-
-    cache.set(cache_key, results, 60 * 60)
-    return results
-
-
-def _extract_city_ward(address):
-    if not address:
-        return []
-    tokens = re.findall(r'[^\s,]+?[市区]', address)
-    return tokens
-
-
-def _collect_db_candidates(destination):
-    names = list(Destination.objects.values_list('name', flat=True))
-    names += list(TravelPost.objects.values_list('start_point', flat=True))
-    names += list(TravelPost.objects.values_list('end_point', flat=True))
-    filtered = [name for name in names if name and destination in name]
-    return filtered
-
-
-def _get_activity_keywords(activity):
-    return {
-        'shopping': ['商店街', 'モール', '百貨店', 'アウトレット', '駅'],
-        'culture': ['神社', '寺', '美術館', '博物館', '城', '庭園'],
-        'nature': ['公園', '湖', '山', '海', '渓谷'],
-        'nightlife': ['夜景', 'バー', '居酒屋', 'クラブ'],
-        'relax': ['温泉', 'スパ', 'カフェ'],
-        'sports': ['スタジアム', 'アリーナ', 'スキー'],
-        'sightseeing': ['タワー', '城', '寺', '神社', '公園', '展望台'],
-    }.get(activity, [])
-
-
-def _build_place_suggestions(destination, user_preference, area_levels, suggestion_count):
-    activity = user_preference.favorite_activity if user_preference else 'sightseeing'
-    activity_keywords = _get_activity_keywords(activity)
-
-    popularity_sources = list(TravelPost.objects.values_list('start_point', flat=True))
-    popularity_sources += list(TravelPost.objects.values_list('end_point', flat=True))
-    popularity = Counter([name for name in popularity_sources if name])
-
-    api_places = _fetch_google_places(destination)
-    api_spots = [place['name'] for place in api_places if place.get('name')]
-    api_city_ward = []
-    for place in api_places:
-        api_city_ward.extend(_extract_city_ward(place.get('address', '')))
-
-    db_candidates = _collect_db_candidates(destination)
-
-    def split_levels(candidates):
-        spots = []
-        cities = []
-        wards = []
-        for name in candidates:
-            if name.endswith('市'):
-                cities.append(name)
-            elif name.endswith('区'):
-                wards.append(name)
-            else:
-                spots.append(name)
-        return spots, cities, wards
-
-    db_spots, db_cities, db_wards = split_levels(db_candidates)
-    api_cities = [name for name in api_city_ward if name.endswith('市')]
-    api_wards = [name for name in api_city_ward if name.endswith('区')]
-
-    def rank_candidates(candidates, label, base_score):
-        ranked = []
-        seen = set()
-        for name in candidates:
-            if not name or name in seen:
-                continue
-            seen.add(name)
-            score = base_score
-            if destination in name:
-                score += 3
-            for keyword in activity_keywords:
-                if keyword in name:
-                    score += 2
-            score += min(popularity.get(name, 0), 3)
-            ranked.append({'name': name, 'label': label, 'score': score})
-        return ranked
-
-    suggestions = []
-    if 'spot' in area_levels:
-        suggestions.extend(rank_candidates(api_spots + db_spots, 'スポット', 2))
-    if 'city' in area_levels:
-        suggestions.extend(rank_candidates(api_cities + db_cities, '市', 1))
-    if 'ward' in area_levels:
-        suggestions.extend(rank_candidates(api_wards + db_wards, '区', 1))
-
-    suggestions.sort(key=lambda item: (-item['score'], item['name']))
-    if suggestions:
-        return suggestions[:suggestion_count]
-
-    fallback_map = {
-        '東京': {
-            'spot': ['渋谷', '池袋', '浅草', '新宿', '銀座'],
-            'ward': ['渋谷区', '新宿区', '豊島区'],
-        },
-        '大阪': {
-            'spot': ['道頓堀', '心斎橋', '大阪城', '梅田'],
-            'city': ['大阪市'],
-        },
-        '京都': {
-            'spot': ['清水寺', '伏見稲荷大社', '金閣寺', '祇園'],
-            'city': ['京都市'],
-        },
-    }
-
-    fallback = fallback_map.get(destination, {})
-    fallback_suggestions = []
-    for level in area_levels:
-        names = fallback.get(level, [])
-        label = 'スポット' if level == 'spot' else '市' if level == 'city' else '区'
-        for name in names:
-            fallback_suggestions.append({'name': name, 'label': label, 'score': 1})
-
-    return fallback_suggestions[:suggestion_count]
 
 
 @login_required(login_url='login')

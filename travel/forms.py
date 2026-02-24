@@ -65,29 +65,3 @@ class TravelPlanRequestForm(forms.Form):
             'placeholder': '任意',
         })
     )
-
-    AREA_LEVEL_CHOICES = [
-        ('spot', '有名スポット'),
-        ('city', '市'),
-        ('ward', '区'),
-    ]
-    area_levels = forms.MultipleChoiceField(
-        label='提案する粒度',
-        choices=AREA_LEVEL_CHOICES,
-        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-        initial=['spot', 'city', 'ward'],
-        required=False,
-    )
-
-    SUGGESTION_COUNT_CHOICES = [
-        ('1', '1件'),
-        ('2', '2件'),
-        ('3', '3件'),
-    ]
-    suggestion_count = forms.ChoiceField(
-        label='提案数',
-        choices=SUGGESTION_COUNT_CHOICES,
-        initial='3',
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        required=False,
-    )
