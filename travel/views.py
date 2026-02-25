@@ -5,6 +5,7 @@ from django.db.models import Q
 import random
 import json
 from django.contrib.auth.decorators import login_required
+import logging
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
@@ -28,16 +29,21 @@ def index(request):
 # 投稿ページ用の関数
 @login_required(login_url='login')
 def post_create(request):
+    error_message = None
     if request.method == "POST":
         form = TravelPostForm(request.POST, request.FILES)
         if form.is_valid():
-            post = form.save(commit=False)
-            post.user = request.user
-            post.save()
-            return redirect('index') # 投稿後はホームへ
+            try:
+                post = form.save(commit=False)
+                post.user = request.user
+                post.save()
+                return redirect('index') # 投稿後はホームへ
+            except Exception:
+                logging.exception("Failed to save TravelPost")
+                error_message = "投稿の保存に失敗しました。もう一度お試しください。"
     else:
         form = TravelPostForm()
-    return render(request, 'travel/post_form.html', {'form': form})
+    return render(request, 'travel/post_form.html', {'form': form, 'error_message': error_message})
 
 # 検索用の関数
 def search(request):

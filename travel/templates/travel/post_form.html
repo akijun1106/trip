@@ -48,6 +48,12 @@
             <div class="form-container">
                 <form method="post" class="custom-form" id="travelForm" enctype="multipart/form-data">
                     {% csrf_token %}
+
+                    {% if error_message %}
+                    <div class="form-group" style="background:#fff3f3;border:1px solid #f2b3b3;color:#b30000;padding:10px 12px;border-radius:6px;">
+                        {{ error_message }}
+                    </div>
+                    {% endif %}
                     
                     <!-- 写真の場所 -->
                     <div class="form-group">
