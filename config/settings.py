@@ -30,6 +30,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'cloudinary_storage',
+    'cloudinary',
     'travel',
 ]
 
@@ -156,9 +158,16 @@ STATICFILES_DIRS = [
     BASE_DIR / 'travel' / 'static',
 ]
 
-# Media files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = Path(os.environ.get('MEDIA_ROOT', BASE_DIR / 'media'))
+# Cloudinary設定
+if os.environ.get('CLOUDINARY_URL'):
+    import cloudinary
+    cloudinary.config(secure=True)
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    MEDIA_URL = '/media/'
+else:
+    # ローカル開発時
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = Path(os.environ.get('MEDIA_ROOT', BASE_DIR / 'media'))
 
 # Security settings for production
 if not DEBUG:

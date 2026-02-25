@@ -14,14 +14,6 @@ services:
         fromDatabase:
           name: trip_db
           property: connectionString
-      - key: MEDIA_ROOT
-        value: /var/data/media
-      - key: SERVE_MEDIA
-        value: True
-    disk:
-      name: media
-      mountPath: /var/data
-      sizeGB: 1
 databases:
   - name: trip_db
     databaseName: trip_production
