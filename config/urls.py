@@ -13,7 +13,7 @@ urlpatterns = [
 ]
 
 # 開発環境や明示指定時にメディアを配信
-if settings.DEBUG or os.environ.get('SERVE_MEDIA', 'False') == 'True':
+if settings.DEBUG or os.environ.get('SERVE_MEDIA', 'False').lower() == 'true':
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # config/urls.py の末尾に追加
