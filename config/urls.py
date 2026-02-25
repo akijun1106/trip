@@ -12,8 +12,8 @@ urlpatterns = [
     path('', include('travel.urls')),
 ]
 
-# 開発環境で画像を表示するための設定を追加
-if settings.DEBUG:
+# 開発環境や明示指定時にメディアを配信
+if settings.DEBUG or os.environ.get('SERVE_MEDIA', 'False') == 'True':
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # config/urls.py の末尾に追加
