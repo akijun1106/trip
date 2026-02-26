@@ -4,6 +4,13 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Cloudinary設定（最初に実行）
+if os.environ.get('CLOUDINARY_URL'):
+    import cloudinary
+    cloudinary.config()
+    # DEFAULT_FILE_STORAGEはグローバルスコープで設定
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-key-change-in-production')
 
 # 本番環境ではFalseに
@@ -86,23 +93,12 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Cloudinary設定
-if os.environ.get('CLOUDINARY_URL'):
-    import cloudinary
-    import cloudinary.uploader
-    import cloudinary.api
-    
-    # 環境変数から自動設定
-    cloudinary.config()
-    
-    # Cloudinaryをメディアストレージとして使用
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    
-    # Cloudinaryは画像の絶対URLを返すため、MEDIA_URLは不要だが一応設定
-    MEDIA_URL = '/media/'
-else:
+# MEDIA設定（Cloudinaryが有効な場合は上で設定済み）
+if not os.environ.get('CLOUDINARY_URL'):
     MEDIA_URL = '/media/'
     MEDIA_ROOT = Path(os.environ.get('MEDIA_ROOT', BASE_DIR / 'media'))
+else:
+    MEDIA_URL = '/media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
