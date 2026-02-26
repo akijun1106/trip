@@ -89,8 +89,16 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Cloudinary設定
 if os.environ.get('CLOUDINARY_URL'):
     import cloudinary
-    cloudinary.config(secure=True)
+    import cloudinary.uploader
+    import cloudinary.api
+    
+    # 環境変数から自動設定
+    cloudinary.config()
+    
+    # Cloudinaryをメディアストレージとして使用
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    
+    # Cloudinaryは画像の絶対URLを返すため、MEDIA_URLは不要だが一応設定
     MEDIA_URL = '/media/'
 else:
     MEDIA_URL = '/media/'
