@@ -26,7 +26,7 @@
     <div class="post-grid">
         {% for post in posts %}
         <div class="post-card-photo">
-            {% if post.image %}
+            {% if post.image and post.image.url|slice:":4" == "http" %}
             <div class="post-image-container">
                 <img src="{{ post.image.url }}" alt="投稿写真" class="post-image">
                 <div class="image-overlay">
@@ -58,7 +58,7 @@
                 <button class="modal-close" onclick="closePostDetail('{{ post.id }}')">×</button>
                 <h3>投稿詳細</h3>
                 
-                {% if post.image %}
+                {% if post.image and post.image.url|slice:":4" == "http" %}
                 <img src="{{ post.image.url }}" alt="投稿写真" class="modal-image">
                 {% endif %}
                 
