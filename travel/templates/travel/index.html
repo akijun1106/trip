@@ -87,9 +87,9 @@
             <div class="post-grid">
                 {% for post in posts %}
                 <div class="post-card-photo">
-                    {% if post.image and post.image.url|slice:":4" == "http" %}
+                    {% if post.image %}
                     <div class="post-image-container">
-                        <img src="{{ post.image.url }}" alt="投稿写真" class="post-image">
+                        <img src="{{ post.image.url }}" alt="投稿写真" class="post-image" onerror="this.parentElement.classList.add('no-image'); this.style.display='none';">
                         <div class="image-overlay">
                             <button class="btn-detail" onclick="openPostDetail('{{ post.id }}')">詳細を見る</button>
                         </div>
@@ -119,8 +119,8 @@
                         <button class="modal-close" onclick="closePostDetail('{{ post.id }}')">×</button>
                         <h3>投稿詳細</h3>
                         
-                        {% if post.image and post.image.url|slice:":4" == "http" %}
-                        <img src="{{ post.image.url }}" alt="投稿写真" class="modal-image">
+                        {% if post.image %}
+                        <img src="{{ post.image.url }}" alt="投稿写真" class="modal-image" onerror="this.style.display='none';">
                         {% endif %}
                         
                         <div class="modal-details">
