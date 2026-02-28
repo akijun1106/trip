@@ -14,17 +14,34 @@ from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from django.conf import settings
 from .plan_generator import generate_travel_plan
+from .recommendation_engine import get_recommended_destination, get_recommendation_reason
 from geopy.distance import geodesic
-from django.contrib.auth.decorators import login_required
 
 # ホーム画面（おすすめ表示） - ログイン必須
 @login_required(login_url='login')
 def index(request):
     destinations = Destination.objects.all()
-    # 1つもデータがないとエラーになるのでチェック
-    recommended = random.choice(destinations) if destinations.exists() else None
     posts = TravelPost.objects.all().order_by('-created_at')
-    return render(request, 'travel/index.html', {'recommended': recommended, 'posts': posts})
+    
+    # ユーザーの投稿に基づくおすすめの旅行先を取得
+    if request.user.is_authenticated:
+        recommended = get_recommended_destination(request.user, destinations)
+        recommendation_reason = get_recommendation_reason(
+            request.user, 
+            recommended, 
+            None
+        ) if recommended else None
+    else:
+        # ログインしていない場合はランダム
+        recommended = random.choice(list(destinations)) if destinations.exists() else None
+        recommendation_reason = None
+    
+    context = {
+        'recommended': recommended,
+        'recommendation_reason': recommendation_reason,
+        'posts': posts
+    }
+    return render(request, 'travel/index.html', context)
 
 # 投稿ページ用の関数
 @login_required(login_url='login')

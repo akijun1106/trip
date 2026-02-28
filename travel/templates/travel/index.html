@@ -21,7 +21,11 @@
             {% endif %}
             <div class="modal-body">
                 <h2>{{ recommended.name }}</h2>
-                <p class="modal-reason">{{ recommended.reason }}</p>
+                {% if recommendation_reason %}
+                <p class="modal-reason">{{ recommendation_reason }}</p>
+                {% else %}
+                <p class="modal-reason">あなたへのおすすめ旅行先 🌟</p>
+                {% endif %}
                 <p class="modal-desc">{{ recommended.description }}</p>
                 <button id="close-recommend" class="btn-main">旅の計画を立てる</button>
             </div>
