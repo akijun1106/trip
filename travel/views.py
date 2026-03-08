@@ -13,6 +13,7 @@ from django.http import JsonResponse
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from django.conf import settings
+from django.contrib import messages
 from .plan_generator import generate_travel_plan
 from .recommendation_engine import get_recommended_destination, get_recommendation_reason
 from geopy.distance import geodesic
@@ -50,7 +51,6 @@ def index(request):
 # 投稿ページ用の関数
 @login_required(login_url='login')
 def post_create(request):
-    error_message = None
     if request.method == "POST":
         form = TravelPostForm(request.POST, request.FILES)
         if form.is_valid():
@@ -58,13 +58,19 @@ def post_create(request):
                 post = form.save(commit=False)
                 post.user = request.user
                 post.save()
+                messages.success(request, f'投稿が完了しました！「{post.photo_location or "投稿"}」がホームに表示されます。')
                 return redirect('index') # 投稿後はホームへ
-            except Exception:
+            except Exception as e:
                 logging.exception("Failed to save TravelPost")
-                error_message = "投稿の保存に失敗しました。もう一度お試しください。"
+                messages.error(request, f"投稿の保存に失敗しました: {str(e)}")
+        else:
+            # バリデーションエラーを表示
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{form.fields.get(field, field).label if field != '__all__' else ''}: {error}")
     else:
         form = TravelPostForm()
-    return render(request, 'travel/post_form.html', {'form': form, 'error_message': error_message})
+    return render(request, 'travel/post_form.html', {'form': form})
 
 # 検索用の関数
 def search(request):
