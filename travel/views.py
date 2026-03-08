@@ -17,19 +17,23 @@ from .plan_generator import generate_travel_plan
 from .recommendation_engine import get_recommended_destination, get_recommendation_reason
 from geopy.distance import geodesic
 
-# ホーム画面（おすすめ表示） - ログイン必須
-@login_required(login_url='login')
+# ホーム画面（おすすめ表示）
 def index(request):
     destinations = Destination.objects.all()
     posts = TravelPost.objects.all().order_by('-created_at')
     
     # ユーザーの投稿に基づくおすすめの旅行先を取得
     if request.user.is_authenticated:
-        recommended = get_recommended_destination(request.user, destinations)
+        recommended, recommendation_meta = get_recommended_destination(
+            request.user,
+            destinations,
+            return_detail=True,
+        )
         recommendation_reason = get_recommendation_reason(
             request.user, 
             recommended, 
-            None
+            recommendation_meta.get('analysis') if recommendation_meta else None,
+            recommendation_meta,
         ) if recommended else None
     else:
         # ログインしていない場合はランダム
